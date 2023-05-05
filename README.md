@@ -1,2 +1,2 @@
-# GewogPopInfo
+# GewogPopulation
  Gewog level population info
