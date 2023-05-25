@@ -1,674 +1,329 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width"
-    />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="stylesheet" href="css/leaflet.css" />
-    <link rel="stylesheet" href="css/L.Control.Locate.min.css" />
-    <link rel="stylesheet" href="css/qgis2web.css" />
-    <link rel="stylesheet" href="css/fontawesome-all.min.css" />
-    <link rel="stylesheet" href="css/leaflet-search.css" />
-    <link rel="stylesheet" href="css/filter.css" />
-    <link rel="stylesheet" href="css/nouislider.min.css" />
-    <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css" />
-    <link rel="stylesheet" href="css/leaflet-measure.css" />
-    <style>
-      html,
-      body,
-      #map {
-        width: 100%;
-        height: 100%;
-        padding: 0;
-        margin: 0;
-      }
-    </style>
-    <title></title>
-  </head>
-  <body>
-    <div id="map"></div>
-    <script src="js/qgis2web_expressions.js"></script>
-    <script src="js/leaflet.js"></script>
-    <script src="js/L.Control.Locate.min.js"></script>
-    <script src="js/leaflet.rotatedMarker.js"></script>
-    <script src="js/leaflet.pattern.js"></script>
-    <script src="js/leaflet-hash.js"></script>
-    <script src="js/Autolinker.min.js"></script>
-    <script src="js/rbush.min.js"></script>
-    <script src="js/labelgun.min.js"></script>
-    <script src="js/labels.js"></script>
-    <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
-    <script src="js/leaflet-measure.js"></script>
-    <script src="js/proj4.js"></script>
-    <script src="js/proj4leaflet.js"></script>
-    <script src="js/leaflet-search.js"></script>
-    <script src="js/tailDT.js"></script>
-    <script src="js/nouislider.min.js"></script>
-    <script src="js/wNumb.js"></script>
-    <script src="data/Gewogpopulationinfo_1.js"></script>
-    <script src="data/Dzongkhagboundary_2.js"></script>
-    <script>
-      var highlightLayer;
-      function highlightFeature(e) {
-        highlightLayer = e.target;
-
-        if (e.target.feature.geometry.type === "LineString") {
-          highlightLayer.setStyle({
-            color: "#ffff00",
-          });
-        } else {
-          highlightLayer.setStyle({
-            fillColor: "#ffff00",
-            fillOpacity: 1,
-          });
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
         }
-        highlightLayer.openPopup();
-      }
-      var crs = new L.Proj.CRS(
-        "EPSG:5266",
-        "+proj=tmerc +lat_0=0 +lon_0=90 +k=1 +x_0=250000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
-        {
-          resolutions: [
-            2800, 1400, 700, 350, 175, 84, 42, 21, 11.2, 5.6, 2.8, 1.4, 0.7,
-            0.35, 0.14, 0.07,
-          ],
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script><script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/proj4.js"></script>
+        <script src="js/proj4leaflet.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/Gewogpopulationinfo_1.js"></script>
+        <script src="data/Dzongkhagboundary_2.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+            highlightLayer.openPopup();
         }
-      );
-      var map = L.map("map", {
-        crs: crs,
-        continuousWorld: false,
-        worldCopyJump: false,
-        zoomControl: true,
-        maxZoom: 28,
-        minZoom: 1,
-      }).fitBounds([
-        [26.064261865794794, 88.65803330231276],
-        [28.480724685036794, 92.36829237454226],
-      ]);
-      var hash = new L.Hash(map);
-      map.attributionControl.setPrefix(
-        '<a href="https://github.com/tomchadwin/qgis2web" target="_blank">jigme.surveyor@gmail.com</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://www.nsb.gov.bt/">Data source: PHCB,2017</a>'
-      );
-      var autolinker = new Autolinker({
-        truncate: { length: 30, location: "smart" },
-      });
-      L.control.locate({ locateOptions: { maxZoom: 19 } }).addTo(map);
-      var measureControl = new L.Control.Measure({
-        position: "topleft",
-        primaryLengthUnit: "meters",
-        secondaryLengthUnit: "kilometers",
-        primaryAreaUnit: "sqmeters",
-        secondaryAreaUnit: "hectares",
-      });
-      measureControl.addTo(map);
-      document.getElementsByClassName(
-        "leaflet-control-measure-toggle"
-      )[0].innerHTML = "";
-      document.getElementsByClassName(
-        "leaflet-control-measure-toggle"
-      )[0].className += " fas fa-ruler";
-      var bounds_group = new L.featureGroup([]);
-      function setBounds() {}
-      map.createPane("pane_OSMStandard_0");
-      map.getPane("pane_OSMStandard_0").style.zIndex = 400;
-      var layer_OSMStandard_0 = L.tileLayer(
-        "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          pane: "pane_OSMStandard_0",
-          opacity: 1.0,
-          attribution:
-            '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
-          minZoom: 1,
-          maxZoom: 28,
-          minNativeZoom: 0,
-          maxNativeZoom: 19,
-        }
-      );
-      layer_OSMStandard_0;
-      map.addLayer(layer_OSMStandard_0);
-      function pop_Gewogpopulationinfo_1(feature, layer) {
-        layer.on({
-          mouseout: function (e) {
-            for (i in e.target._eventParents) {
-              e.target._eventParents[i].resetStyle(e.target);
-            }
-            if (typeof layer.closePopup == "function") {
-              layer.closePopup();
-            } else {
-              layer.eachLayer(function (feature) {
-                feature.closePopup();
-              });
-            }
-          },
-          mouseover: highlightFeature,
+        var crs = new L.Proj.CRS('EPSG:5266', '+proj=tmerc +lat_0=0 +lon_0=90 +k=1 +x_0=250000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs', {
+            resolutions: [2800, 1400, 700, 350, 175, 84, 42, 21, 11.2, 5.6, 2.8, 1.4, 0.7, 0.35, 0.14, 0.07],
         });
-        var popupContent =
-          '<table>\
+        var map = L.map('map', {
+            crs: crs,
+            continuousWorld: false,
+            worldCopyJump: false, 
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[26.192492634564328,88.24619469905078],[28.603098202274854,91.96091710305062]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_Gewogpopulationinfo_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
                     <tr>\
-                        <td colspan="2">' +
-          (feature.properties["fid"] !== null
-            ? autolinker.link(feature.properties["fid"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Dzongkhag</th>\
-                        <td>' +
-          (feature.properties["Dzongkhag"] !== null
-            ? autolinker.link(feature.properties["Dzongkhag"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td>' + (feature.properties['Dzongkhag'] !== null ? autolinker.link(feature.properties['Dzongkhag'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Gewog</th>\
-                        <td>' +
-          (feature.properties["Gewog"] !== null
-            ? autolinker.link(feature.properties["Gewog"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td>' + (feature.properties['Gewog'] !== null ? autolinker.link(feature.properties['Gewog'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Total population</th>\
-                        <td>' +
-          (feature.properties["Total population"] !== null
-            ? autolinker.link(
-                feature.properties["Total population"].toLocaleString()
-              )
-            : "") +
-          '</td>\
+                        <td>' + (feature.properties['Total population'] !== null ? autolinker.link(feature.properties['Total population'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Total households</th>\
-                        <td>' +
-          (feature.properties["Total households"] !== null
-            ? autolinker.link(
-                feature.properties["Total households"].toLocaleString()
-              )
-            : "") +
-          '</td>\
+                        <td>' + (feature.properties['Total households'] !== null ? autolinker.link(feature.properties['Total households'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Female</th>\
-                        <td>' +
-          (feature.properties["Female"] !== null
-            ? autolinker.link(feature.properties["Female"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td>' + (feature.properties['Female'] !== null ? autolinker.link(feature.properties['Female'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Male</th>\
-                        <td>' +
-          (feature.properties["Male"] !== null
-            ? autolinker.link(feature.properties["Male"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td>' + (feature.properties['Male'] !== null ? autolinker.link(feature.properties['Male'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Area (sqkm)</th>\
-                        <td>' +
-          (feature.properties["Area (sqkm)"] !== null
-            ? autolinker.link(
-                feature.properties["Area (sqkm)"].toLocaleString()
-              )
-            : "") +
-          "</td>\
+                        <td>' + (feature.properties['Area (sqkm)'] !== null ? autolinker.link(feature.properties['Area (sqkm)'].toLocaleString()) : '') + '</td>\
                     </tr>\
-                </table>";
-        layer.bindPopup(popupContent, { maxHeight: 400 });
-      }
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
 
-      function style_Gewogpopulationinfo_1_0(feature) {
-        if (
-          feature.properties["Total population"] >= 182.0 &&
-          feature.properties["Total population"] <= 1163.0
-        ) {
-          return {
-            pane: "pane_Gewogpopulationinfo_1",
-            opacity: 1,
-            color: "rgba(0,0,0,0.8)",
-            dashArray: "1,5",
-            lineCap: "butt",
-            lineJoin: "miter",
-            weight: 1.0,
-            fill: true,
-            fillOpacity: 1,
-            fillColor: "rgba(247,251,255,0.8)",
-            interactive: true,
-          };
-        }
-        if (
-          feature.properties["Total population"] >= 1163.0 &&
-          feature.properties["Total population"] <= 1699.0
-        ) {
-          return {
-            pane: "pane_Gewogpopulationinfo_1",
-            opacity: 1,
-            color: "rgba(0,0,0,0.8)",
-            dashArray: "1,5",
-            lineCap: "butt",
-            lineJoin: "miter",
-            weight: 1.0,
-            fill: true,
-            fillOpacity: 1,
-            fillColor: "rgba(200,220,240,0.8)",
-            interactive: true,
-          };
-        }
-        if (
-          feature.properties["Total population"] >= 1699.0 &&
-          feature.properties["Total population"] <= 2542.8
-        ) {
-          return {
-            pane: "pane_Gewogpopulationinfo_1",
-            opacity: 1,
-            color: "rgba(0,0,0,0.8)",
-            dashArray: "1,5",
-            lineCap: "butt",
-            lineJoin: "miter",
-            weight: 1.0,
-            fill: true,
-            fillOpacity: 1,
-            fillColor: "rgba(115,178,216,0.8)",
-            interactive: true,
-          };
-        }
-        if (
-          feature.properties["Total population"] >= 2542.8 &&
-          feature.properties["Total population"] <= 4020.6
-        ) {
-          return {
-            pane: "pane_Gewogpopulationinfo_1",
-            opacity: 1,
-            color: "rgba(0,0,0,0.8)",
-            dashArray: "1,5",
-            lineCap: "butt",
-            lineJoin: "miter",
-            weight: 1.0,
-            fill: true,
-            fillOpacity: 1,
-            fillColor: "rgba(41,121,185,0.8)",
-            interactive: true,
-          };
-        }
-        if (
-          feature.properties["Total population"] >= 4020.6 &&
-          feature.properties["Total population"] <= 91857.0
-        ) {
-          return {
-            pane: "pane_Gewogpopulationinfo_1",
-            opacity: 1,
-            color: "rgba(0,0,0,0.8)",
-            dashArray: "1,5",
-            lineCap: "butt",
-            lineJoin: "miter",
-            weight: 1.0,
-            fill: true,
-            fillOpacity: 1,
-            fillColor: "rgba(8,48,107,0.8)",
-            interactive: true,
-          };
-        }
-      }
-      map.createPane("pane_Gewogpopulationinfo_1");
-      map.getPane("pane_Gewogpopulationinfo_1").style.zIndex = 401;
-      map.getPane("pane_Gewogpopulationinfo_1").style["mix-blend-mode"] =
-        "normal";
-      var layer_Gewogpopulationinfo_1 = new L.geoJson(
-        json_Gewogpopulationinfo_1,
-        {
-          attribution: "",
-          interactive: true,
-          dataVar: "json_Gewogpopulationinfo_1",
-          layerName: "layer_Gewogpopulationinfo_1",
-          pane: "pane_Gewogpopulationinfo_1",
-          onEachFeature: pop_Gewogpopulationinfo_1,
-          style: style_Gewogpopulationinfo_1_0,
-        }
-      );
-      bounds_group.addLayer(layer_Gewogpopulationinfo_1);
-      map.addLayer(layer_Gewogpopulationinfo_1);
-      function pop_Dzongkhagboundary_2(feature, layer) {
-        layer.on({
-          mouseout: function (e) {
-            for (i in e.target._eventParents) {
-              e.target._eventParents[i].resetStyle(e.target);
+        function style_Gewogpopulationinfo_1_0(feature) {
+            if (feature.properties['Total population'] >= 182.000000 && feature.properties['Total population'] <= 1163.000000 ) {
+                return {
+                pane: 'pane_Gewogpopulationinfo_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.8)',
+                dashArray: '1,5',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,251,255,0.8)',
+                interactive: true,
             }
-            if (typeof layer.closePopup == "function") {
-              layer.closePopup();
-            } else {
-              layer.eachLayer(function (feature) {
-                feature.closePopup();
-              });
             }
-          },
-          mouseover: highlightFeature,
+            if (feature.properties['Total population'] >= 1163.000000 && feature.properties['Total population'] <= 1699.000000 ) {
+                return {
+                pane: 'pane_Gewogpopulationinfo_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.8)',
+                dashArray: '1,5',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,220,240,0.8)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Total population'] >= 1699.000000 && feature.properties['Total population'] <= 2542.800000 ) {
+                return {
+                pane: 'pane_Gewogpopulationinfo_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.8)',
+                dashArray: '1,5',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(115,178,216,0.8)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Total population'] >= 2542.800000 && feature.properties['Total population'] <= 4020.600000 ) {
+                return {
+                pane: 'pane_Gewogpopulationinfo_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.8)',
+                dashArray: '1,5',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(41,121,185,0.8)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Total population'] >= 4020.600000 && feature.properties['Total population'] <= 91857.000000 ) {
+                return {
+                pane: 'pane_Gewogpopulationinfo_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.8)',
+                dashArray: '1,5',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(8,48,107,0.8)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_Gewogpopulationinfo_1');
+        map.getPane('pane_Gewogpopulationinfo_1').style.zIndex = 401;
+        map.getPane('pane_Gewogpopulationinfo_1').style['mix-blend-mode'] = 'normal';
+        var layer_Gewogpopulationinfo_1 = new L.geoJson(json_Gewogpopulationinfo_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Gewogpopulationinfo_1',
+            layerName: 'layer_Gewogpopulationinfo_1',
+            pane: 'pane_Gewogpopulationinfo_1',
+            onEachFeature: pop_Gewogpopulationinfo_1,
+            style: style_Gewogpopulationinfo_1_0,
         });
-        var popupContent =
-          '<table>\
+        bounds_group.addLayer(layer_Gewogpopulationinfo_1);
+        map.addLayer(layer_Gewogpopulationinfo_1);
+        function pop_Dzongkhagboundary_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
                     <tr>\
-                        <td colspan="2">' +
-          (feature.properties["fid"] !== null
-            ? autolinker.link(feature.properties["fid"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' +
-          (feature.properties["Dzongkhag"] !== null
-            ? autolinker.link(feature.properties["Dzongkhag"].toLocaleString())
-            : "") +
-          '</td>\
+                        <td colspan="2">' + (feature.properties['Dzongkhag'] !== null ? autolinker.link(feature.properties['Dzongkhag'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' +
-          (feature.properties["AreaSqkm"] !== null
-            ? autolinker.link(feature.properties["AreaSqkm"].toLocaleString())
-            : "") +
-          "</td>\
+                        <td colspan="2">' + (feature.properties['AreaSqkm'] !== null ? autolinker.link(feature.properties['AreaSqkm'].toLocaleString()) : '') + '</td>\
                     </tr>\
-                </table>";
-        layer.bindPopup(popupContent, { maxHeight: 400 });
-      }
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
 
-      function style_Dzongkhagboundary_2_0() {
-        return {
-          pane: "pane_Dzongkhagboundary_2",
-          opacity: 1,
-          color: "rgba(255,1,5,1.0)",
-          dashArray: "",
-          lineCap: "butt",
-          lineJoin: "miter",
-          weight: 1.0,
-          fillOpacity: 0,
-          interactive: false,
-        };
-      }
-      map.createPane("pane_Dzongkhagboundary_2");
-      map.getPane("pane_Dzongkhagboundary_2").style.zIndex = 402;
-      map.getPane("pane_Dzongkhagboundary_2").style["mix-blend-mode"] =
-        "normal";
-      var layer_Dzongkhagboundary_2 = new L.geoJson(json_Dzongkhagboundary_2, {
-        attribution: "",
-        interactive: false,
-        dataVar: "json_Dzongkhagboundary_2",
-        layerName: "layer_Dzongkhagboundary_2",
-        pane: "pane_Dzongkhagboundary_2",
-        onEachFeature: pop_Dzongkhagboundary_2,
-        style: style_Dzongkhagboundary_2_0,
-      });
-      bounds_group.addLayer(layer_Dzongkhagboundary_2);
-      map.addLayer(layer_Dzongkhagboundary_2);
-      var osmGeocoder = new L.Control.Geocoder({
-        collapsed: true,
-        position: "topleft",
-        text: "Search",
-        title: "Testing",
-      }).addTo(map);
-      document.getElementsByClassName(
-        "leaflet-control-geocoder-icon"
-      )[0].className += " fa fa-search";
-      document.getElementsByClassName(
-        "leaflet-control-geocoder-icon"
-      )[0].title += "Search for a place";
-      var baseMaps = {};
-      L.control
-        .layers(
-          baseMaps,
-          {
-            '<img src="legend/Dzongkhagboundary_2.png" /> Dzongkhag boundary':
-              layer_Dzongkhagboundary_2,
-            'Gewog population info<br /><table><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_18211630.png" /></td><td>182 - 1163</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_116316991.png" /></td><td>1163 - 1699</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_169925432.png" /></td><td>1699 - 2543</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_254340213.png" /></td><td>2543 - 4021</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_4021918574.png" /></td><td>4021 - 91857</td></tr></table>':
-              layer_Gewogpopulationinfo_1,
-            "OSM Standard": layer_OSMStandard_0,
-          },
-          { collapsed: false }
-        )
-        .addTo(map);
-      setBounds();
-      var i = 0;
-      layer_Dzongkhagboundary_2.eachLayer(function (layer) {
-        var context = {
-          feature: layer.feature,
-          variables: {},
-        };
-        layer.bindTooltip(
-          layer.feature.properties["Dzongkhag"] !== null
-            ? String(
-                "<div style=\"color: #ffffff; font-size: 14pt; font-style: italic; font-family: 'Arial', sans-serif;\">" +
-                  layer.feature.properties["Dzongkhag"]
-              ) + "</div>"
-            : "",
-          {
-            permanent: true,
-            offset: [-0, -16],
-            className: "css_Dzongkhagboundary_2",
-          }
-        );
-        labels.push(layer);
-        totalMarkers += 1;
-        layer.added = true;
-        addLabel(layer, i);
-        i++;
-      });
-      map.addControl(
-        new L.Control.Search({
-          layer: layer_Gewogpopulationinfo_1,
-          initial: false,
-          hideMarkerOnCollapse: true,
-          propertyName: "Gewog",
-        })
-      );
-      document.getElementsByClassName("search-button")[0].className +=
-        " fa fa-binoculars";
-      var mapDiv = document.getElementById("map");
-      var row = document.createElement("div");
-      row.className = "row";
-      row.id = "all";
-      row.style.height = "100%";
-      var col1 = document.createElement("div");
-      col1.className = "col9";
-      col1.id = "mapWindow";
-      col1.style.height = "99%";
-      col1.style.width = "80%";
-      col1.style.display = "inline-block";
-      var col2 = document.createElement("div");
-      col2.className = "col3";
-      col2.id = "menu";
-      col2.style.display = "inline-block";
-      mapDiv.parentNode.insertBefore(row, mapDiv);
-      document.getElementById("all").appendChild(col1);
-      document.getElementById("all").appendChild(col2);
-      col1.appendChild(mapDiv);
-      var Filters = { Dzongkhag: "str" };
-      function filterFunc() {
-        map.eachLayer(function (lyr) {
-          if ("options" in lyr && "dataVar" in lyr["options"]) {
-            features = this[lyr["options"]["dataVar"]].features.slice(0);
-            try {
-              for (key in Filters) {
-                keyS = key.replace(/[^a-zA-Z0-9_]/g, "");
-                if (Filters[key] == "str" || Filters[key] == "bool") {
-                  var selection = [];
-                  var options = document.getElementById("sel_" + keyS).options;
-                  for (var i = 0; i < options.length; i++) {
-                    if (options[i].selected) selection.push(options[i].value);
-                  }
-                  try {
-                    if (key in features[0].properties) {
-                      for (i = features.length - 1; i >= 0; --i) {
-                        if (
-                          selection.indexOf(features[i].properties[key]) < 0 &&
-                          selection.length > 0
-                        ) {
-                          features.splice(i, 1);
-                        }
-                      }
-                    }
-                  } catch (err) {}
-                }
-                if (Filters[key] == "int") {
-                  sliderVals = document
-                    .getElementById("div_" + keyS)
-                    .noUiSlider.get();
-                  try {
-                    if (key in features[0].properties) {
-                      for (i = features.length - 1; i >= 0; --i) {
-                        if (
-                          parseInt(features[i].properties[key]) <
-                            sliderVals[0] ||
-                          parseInt(features[i].properties[key]) > sliderVals[1]
-                        ) {
-                          features.splice(i, 1);
-                        }
-                      }
-                    }
-                  } catch (err) {}
-                }
-                if (Filters[key] == "real") {
-                  sliderVals = document
-                    .getElementById("div_" + keyS)
-                    .noUiSlider.get();
-                  try {
-                    if (key in features[0].properties) {
-                      for (i = features.length - 1; i >= 0; --i) {
-                        if (
-                          features[i].properties[key] < sliderVals[0] ||
-                          features[i].properties[key] > sliderVals[1]
-                        ) {
-                          features.splice(i, 1);
-                        }
-                      }
-                    }
-                  } catch (err) {}
-                }
-                if (
-                  Filters[key] == "date" ||
-                  Filters[key] == "datetime" ||
-                  Filters[key] == "time"
-                ) {
-                  try {
-                    if (key in features[0].properties) {
-                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, "");
-                      startdate = document
-                        .getElementById("dat_" + HTMLkey + "_date1")
-                        .value.replace(" ", "T");
-                      enddate = document
-                        .getElementById("dat_" + HTMLkey + "_date2")
-                        .value.replace(" ", "T");
-                      for (i = features.length - 1; i >= 0; --i) {
-                        if (
-                          features[i].properties[key] < startdate ||
-                          features[i].properties[key] > enddate
-                        ) {
-                          features.splice(i, 1);
-                        }
-                      }
-                    }
-                  } catch (err) {}
-                }
-              }
-            } catch (err) {}
-            this[lyr["options"]["layerName"]].clearLayers();
-            this[lyr["options"]["layerName"]].addData(features);
-            var i = 0;
-            layer_Dzongkhagboundary_2.eachLayer(function (layer) {
-              var context = {
+        function style_Dzongkhagboundary_2_0() {
+            return {
+                pane: 'pane_Dzongkhagboundary_2',
+                opacity: 1,
+                color: 'rgba(28,0,5,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Dzongkhagboundary_2');
+        map.getPane('pane_Dzongkhagboundary_2').style.zIndex = 402;
+        map.getPane('pane_Dzongkhagboundary_2').style['mix-blend-mode'] = 'normal';
+        var layer_Dzongkhagboundary_2 = new L.geoJson(json_Dzongkhagboundary_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Dzongkhagboundary_2',
+            layerName: 'layer_Dzongkhagboundary_2',
+            pane: 'pane_Dzongkhagboundary_2',
+            onEachFeature: pop_Dzongkhagboundary_2,
+            style: style_Dzongkhagboundary_2_0,
+        });
+        bounds_group.addLayer(layer_Dzongkhagboundary_2);
+        map.addLayer(layer_Dzongkhagboundary_2);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'<img src="legend/Dzongkhagboundary_2.png" /> Dzongkhag boundary': layer_Dzongkhagboundary_2,'Gewog population info<br /><table><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_18211630.png" /></td><td>182 - 1163</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_116316991.png" /></td><td>1163 - 1699</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_169925432.png" /></td><td>1699 - 2543</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_254340213.png" /></td><td>2543 - 4021</td></tr><tr><td style="text-align: center;"><img src="legend/Gewogpopulationinfo_1_4021918574.png" /></td><td>4021 - 91857</td></tr></table>': layer_Gewogpopulationinfo_1,"OSM Standard": layer_OSMStandard_0,}).addTo(map);
+        setBounds();
+        var i = 0;
+        layer_Dzongkhagboundary_2.eachLayer(function(layer) {
+            var context = {
                 feature: layer.feature,
-                variables: {},
-              };
-              layer.bindTooltip(
-                layer.feature.properties["Dzongkhag"] !== null
-                  ? String(
-                      "<div style=\"color: #ffffff; font-size: 14pt; font-style: italic; font-family: 'Arial', sans-serif;\">" +
-                        layer.feature.properties["Dzongkhag"]
-                    ) + "</div>"
-                  : "",
-                {
-                  permanent: true,
-                  offset: [-0, -16],
-                  className: "css_Dzongkhagboundary_2",
-                }
-              );
-              labels.push(layer);
-              totalMarkers += 1;
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Dzongkhag'] !== null?String('<div style="color: #ffffff; font-size: 11pt; font-style: italic; font-family: \'Arial\', sans-serif;">' + layer.feature.properties['Dzongkhag']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Dzongkhagboundary_2'});
+            labels.push(layer);
+            totalMarkers += 1;
               layer.added = true;
               addLabel(layer, i);
               i++;
-            });
-          }
         });
-      }
-      document
-        .getElementById("menu")
-        .appendChild(document.createElement("div"));
-      var div_Dzongkhag = document.createElement("div");
-      div_Dzongkhag.id = "div_Dzongkhag";
-      div_Dzongkhag.className = "filterselect";
-      document.getElementById("menu").appendChild(div_Dzongkhag);
-      sel_Dzongkhag = document.createElement("select");
-      sel_Dzongkhag.multiple = true;
-      sel_Dzongkhag.size = 10;
-      sel_Dzongkhag.id = "sel_Dzongkhag";
-      var Dzongkhag_options_str = "<option value='' unselected></option>";
-      sel_Dzongkhag.onchange = function () {
-        filterFunc();
-      };
-      Dzongkhag_options_str += '<option value="Bumthang">Bumthang</option>';
-      Dzongkhag_options_str += '<option value="Chhukha">Chhukha</option>';
-      Dzongkhag_options_str += '<option value="Dagana">Dagana</option>';
-      Dzongkhag_options_str += '<option value="Gasa">Gasa</option>';
-      Dzongkhag_options_str += '<option value="Haa">Haa</option>';
-      Dzongkhag_options_str += '<option value="Lhuentse">Lhuentse</option>';
-      Dzongkhag_options_str += '<option value="Monggar">Monggar</option>';
-      Dzongkhag_options_str += '<option value="Paro">Paro</option>';
-      Dzongkhag_options_str +=
-        '<option value="Pema Gatshel">Pema Gatshel</option>';
-      Dzongkhag_options_str += '<option value="Punakha">Punakha</option>';
-      Dzongkhag_options_str +=
-        '<option value="Samdrup Jongkhar">Samdrup Jongkhar</option>';
-      Dzongkhag_options_str += '<option value="Samtse">Samtse</option>';
-      Dzongkhag_options_str += '<option value="Sarpang">Sarpang</option>';
-      Dzongkhag_options_str += '<option value="Thimphu">Thimphu</option>';
-      Dzongkhag_options_str +=
-        '<option value="Trashi Yangtse">Trashi Yangtse</option>';
-      Dzongkhag_options_str += '<option value="Trashigang">Trashigang</option>';
-      Dzongkhag_options_str += '<option value="Trongsa">Trongsa</option>';
-      Dzongkhag_options_str += '<option value="Tsirang">Tsirang</option>';
-      Dzongkhag_options_str +=
-        '<option value="Wangdue Phodrang">Wangdue Phodrang</option>';
-      Dzongkhag_options_str += '<option value="Zhemgang">Zhemgang</option>';
-      sel_Dzongkhag.innerHTML = Dzongkhag_options_str;
-      div_Dzongkhag.appendChild(sel_Dzongkhag);
-      var lab_Dzongkhag = document.createElement("div");
-      lab_Dzongkhag.innerHTML = "Dzongkhag";
-      lab_Dzongkhag.className = "filterlabel";
-      div_Dzongkhag.appendChild(lab_Dzongkhag);
-      var reset_Dzongkhag = document.createElement("div");
-      reset_Dzongkhag.innerHTML = "clear filter";
-      reset_Dzongkhag.className = "filterlabel";
-      reset_Dzongkhag.onclick = function () {
-        var options = document.getElementById("sel_Dzongkhag").options;
-        for (var i = 0; i < options.length; i++) {
-          options[i].selected = false;
-        }
-        filterFunc();
-      };
-      div_Dzongkhag.appendChild(reset_Dzongkhag);
-      resetLabels([layer_Gewogpopulationinfo_1, layer_Dzongkhagboundary_2]);
-      map.on("zoomend", function () {
-        resetLabels([layer_Gewogpopulationinfo_1, layer_Dzongkhagboundary_2]);
-      });
-      map.on("layeradd", function () {
-        resetLabels([layer_Gewogpopulationinfo_1, layer_Dzongkhagboundary_2]);
-      });
-      map.on("layerremove", function () {
-        resetLabels([layer_Gewogpopulationinfo_1, layer_Dzongkhagboundary_2]);
-      });
-    </script>
-  </body>
+        map.addControl(new L.Control.Search({
+            layer: layer_Gewogpopulationinfo_1,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'Gewog'}));
+        document.getElementsByClassName('search-button')[0].className +=
+         ' fa fa-binoculars';
+        resetLabels([layer_Gewogpopulationinfo_1,layer_Dzongkhagboundary_2]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Gewogpopulationinfo_1,layer_Dzongkhagboundary_2]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Gewogpopulationinfo_1,layer_Dzongkhagboundary_2]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Gewogpopulationinfo_1,layer_Dzongkhagboundary_2]);
+        });
+        </script>
+    </body>
 </html>
